@@ -86,6 +86,10 @@ config.cookie_secret = process.env.COCO_COOKIE_SECRET or 'chips ahoy'
 
 config.isProduction = config.mongo.host isnt 'localhost'
 
+# Full domains (including port, if not 80) of the web-dev iFrame host (unsafe), and the host for everything else
+config.mainHostname = process.env.COCO_MAIN_HOSTNAME or 'localhost:3000'
+config.unsafeContentHostname = process.env.COCO_UNSAFE_CONTENT_HOSTNAME or 'localhost:3000'
+
 if process.env.COCO_PICOCTF
   config.picoCTF = true
   config.picoCTF_api_url = 'http://staging.picoctf.com/api'

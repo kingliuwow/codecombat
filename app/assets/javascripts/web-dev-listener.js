@@ -17,13 +17,13 @@ var virtualScripts;
 var goalStates;
 
 var allowedOrigins = [
-    /https:\/\/codecombat\.com/,
-    /https?:\/\/cn\.codecombat\.com/,
-    /http:\/\/localhost:3000/,
-    /http:\/\/direct\.codecombat\.com/,
-    /http:\/\/staging\.codecombat\.com/,
-    /http:\/\/next\.codecombat\.com/,
-    /http:\/\/.*codecombat-staging-codecombat\.runnableapp\.com/,
+    /^https?:\/\/codecombat\.com$/,
+    /^https?:\/\/cn.codecombat\.com$/,
+    /^https?:\/\/localhost:3000$/,
+    /^https?:\/\/direct\.codecombat\.com$/,
+    /^https?:\/\/staging\.codecombat\.com$/,
+    /^https?:\/\/next\.codecombat\.com$/,
+    /^https?:\/\/.*codecombat-staging-codecombat\.runnableapp\.com$/,
 ];
 
 function receiveMessage(event) {

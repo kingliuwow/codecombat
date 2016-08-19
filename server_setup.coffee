@@ -52,6 +52,32 @@ developmentLogging = (tokens, req, res) ->
   s += ' (proxied)' if req.proxied
   return s
 
+setupDomainFilterMiddleware = (app) ->
+  if config.isProduction
+    unsafePaths = [
+      /^\/web-dev-iframe\.html$/
+      /^\/javascripts\/web-dev-listener\.js$/
+      /^\/javascripts\/workers\/aether_worker\.js$/
+    ]
+    serveFromBoth = [
+      /^\/healthcheck$/ # Allow the load balancer to check if we're up yet
+      /^\/javascripts\/app\/vendor\/aether-html\.js$/
+      /^\/file\/db\/thang.type\/[a-f0-9]+\/.*$/
+      /^\/images\/.*$/
+    ]
+    app.use (req, res, next) ->
+      if _.any(serveFromBoth, (pathRegex) -> pathRegex.test(req.path))
+        next()
+      else if _.any(unsafePaths, (pathRegex) -> pathRegex.test(req.path))
+        if req.host isnt config.unsafeContentHostname
+          res.redirect('http://' + config.unsafeContentHostname + req.path)
+        else
+          next()
+      else if req.host isnt config.mainHostname
+        res.redirect('http://' + config.mainHostname + req.path)
+      else
+        next()
+
 setupErrorMiddleware = (app) ->
   app.use (err, req, res, next) ->
     if err
@@ -177,6 +203,7 @@ exports.setupMiddleware = (app) ->
   setupPerfMonMiddleware app
   setupCountryRedirectMiddleware app, "china", "CN", "zh", config.chinaDomain
   setupCountryRedirectMiddleware app, "brazil", "BR", "pt-BR", config.brazilDomain
+  setupDomainFilterMiddleware app
   setupMiddlewareToSendOldBrowserWarningWhenPlayersViewLevelDirectly app
   setupExpressMiddleware app
   setupPassportMiddleware app
@@ -206,6 +233,7 @@ setupFallbackRouteToIndex = (app) ->
           configData =  _.omit mandate?.toObject() or {}, '_id'
         configData.picoCTF = config.picoCTF
         configData.production = config.isProduction
+        configData.unsafeContentHostname = config.unsafeContentHostname
         data = data.replace '"serverConfigTag"', JSON.stringify configData
         data = data.replace('"userObjectTag"', user)
         data = data.replace('"amActuallyTag"', JSON.stringify(req.session.amActually))

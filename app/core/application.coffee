@@ -84,9 +84,12 @@ Application = {
       @idleTracker.start()
       
   checkForNewAchievement: ->
-    id = me.get('lastAchievementChecked') or me.id
-    lastAchievementChecked = new Date(parseInt(id.substring(0, 8), 16) * 1000)
-    daysSince = moment.duration(new Date() - lastAchievementChecked).asDays()
+    if me.get('lastAchievementChecked')
+      startFrom = new Date(me.get('lastAchievementChecked'))
+    else
+      startFrom = me.created()
+    
+    daysSince = moment.duration(new Date() - startFrom).asDays()
     if daysSince > 1
       me.checkForNewAchievement().then => @checkForNewAchievement()
 }

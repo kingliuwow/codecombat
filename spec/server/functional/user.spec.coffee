@@ -1039,6 +1039,22 @@ describe 'POST /db/user/:handle/deteacher', ->
 
     
 describe 'POST /db/user/:handle/check-for-new-achievements', ->
+  achievementURL = getURL('/db/achievement')
+  achievementJSON = {
+    collection: 'users'
+    query: {'points': {$gt: 50}}
+    userField: '_id'
+    recalculable: true
+    worth: 75
+    rewards: {
+      gems: 50
+      levels: [new mongoose.Types.ObjectId().toString()]
+    }
+    name: 'Dungeon Arena Started'
+    description: 'Started playing Dungeon Arena.'
+    related: 'a'
+  }
+  
   
   beforeEach utils.wrap (done) ->
     yield utils.clearModels [Achievement, EarnedAchievement, LevelSession, User]
@@ -1055,22 +1071,6 @@ describe 'POST /db/user/:handle/check-for-new-achievements', ->
     earned = yield EarnedAchievement.count()
     expect(earned).toBe(0)
 
-    achievementURL = getURL('/db/achievement')
-    achievementJSON = {
-      collection: 'users'
-      query: {'points': {$gt: 50}}
-      userField: '_id'
-      recalculable: true
-      worth: 75
-      rewards: {
-        gems: 50
-        levels: [new mongoose.Types.ObjectId().toString()]
-      }
-      name: 'Dungeon Arena Started'
-      description: 'Started playing Dungeon Arena.'
-      related: 'a'
-    }
-
     admin = yield utils.initAdmin()
     yield utils.loginUser(admin)
     [res, body] = yield request.postAsync { uri: achievementURL, json: achievementJSON }
@@ -1078,7 +1078,7 @@ describe 'POST /db/user/:handle/check-for-new-achievements', ->
     expect(res.statusCode).toBe(201)
     
     user = yield User.findById(user.id)
-    expect(user.get('rewards')).toBeUndefined()
+    expect(user.get('earned')).toBeUndefined()
     
     yield utils.loginUser(user)
     [res, body] = yield request.postAsync({ url, json })
@@ -1088,3 +1088,37 @@ describe 'POST /db/user/:handle/check-for-new-achievements', ->
     expect(body.lastAchievementChecked).toBe(achievementUpdated)
     
     done()
+    
+  it 'updates the user if they already earned the achievement but the rewards changed', utils.wrap (done) ->
+    user = yield utils.initUser({points: 100})
+    yield utils.loginUser(user)
+    url = utils.getURL("/db/user/#{user.id}/check-for-new-achievement")
+    json = true
+    [res, body] = yield request.postAsync({ url, json })
+
+    admin = yield utils.initAdmin()
+    yield utils.loginUser(admin)
+    [res, body] = yield request.postAsync { uri: achievementURL, json: achievementJSON }
+    achievement = yield Achievement.findById(body._id)
+    expect(res.statusCode).toBe(201)
+
+    user = yield User.findById(user.id)
+    expect(user.get('rewards')).toBeUndefined()
+
+    yield utils.loginUser(user)
+    [res, body] = yield request.postAsync({ url, json })
+    expect(res.body.earned.gems).toBe(50)
+
+    achievement.set({
+      updated: new Date().toISOString()
+      rewards: { gems: 100 }
+    })
+    yield achievement.save()
+
+    [res, body] = yield request.postAsync({ url, json })
+    expect(res.body.earned.gems).toBe(100)
+    expect(res.statusCode).toBe(200)
+    
+    
+    done()
+    

@@ -293,7 +293,7 @@ module.exports =
       user.update({$set: userUpdate}).exec()
       return res.send(userUpdate)
 
-    earned = yield EarnedAchievement.findOne({ achievement: achievement.id, user: req.user })
+    earned = yield EarnedAchievement.findOne({ achievement: achievement.id, user: req.user.id })
     yield [
       EarnedAchievement.upsertFor(achievement, trigger, earned, req.user)
       user.update({$set: userUpdate})

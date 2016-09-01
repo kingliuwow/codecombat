@@ -66,15 +66,17 @@ setupDomainFilterMiddleware = (app) ->
       /^\/images\/.*$/
     ]
     app.use (req, res, next) ->
+      isChinaServer = new RegExp('^cn\.').test(req.host)
+      domainPrefix = if isChinaServer then 'cn.' else ''
       if _.any(serveFromBoth, (pathRegex) -> pathRegex.test(req.path))
         next()
       else if _.any(unsafePaths, (pathRegex) -> pathRegex.test(req.path))
-        if req.host isnt config.unsafeContentHostname
-          res.redirect('http://' + config.unsafeContentHostname + req.path)
+        if req.host isnt domainPrefix + config.unsafeContentHostname
+          res.redirect('http://' + domainPrefix + config.unsafeContentHostname + req.path)
         else
           next()
-      else if req.host isnt config.mainHostname
-        res.redirect('http://' + config.mainHostname + req.path)
+      else if req.host isnt domainPrefix + config.mainHostname
+        res.redirect('http://' + domainPrefix + config.mainHostname + req.path)
       else
         next()
 

@@ -1,1 +1,4 @@
-iframe(src="http://" + unsafeContentHostname + "/web-dev-iframe.html")
+if new RegExp('//cn\.').test(document.location.href)
+  iframe(src="http://cn." + unsafeContentHostname + "/web-dev-iframe.html")
+else
+  iframe(src="http://" + unsafeContentHostname + "/web-dev-iframe.html")

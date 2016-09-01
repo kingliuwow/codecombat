@@ -86,8 +86,8 @@ config.cookie_secret = process.env.COCO_COOKIE_SECRET or 'chips ahoy'
 
 config.isProduction = config.mongo.host isnt 'localhost'
 
-# Full domains (including port, if not 80) of the web-dev iFrame host (unsafe), and the host for everything else
-# Because cn.codecombat.com is an alias for codecombat.com, special handling of the `cn.` is done in server_setup, WebSurfaceView, and web-surface-view
+# Domains (without subdomain prefix, with port number) for main hostname (usually codecombat.com)
+# and unsafe web-dev iFrame content (usually codecombatprojects.com).
 config.mainHostname = process.env.COCO_MAIN_HOSTNAME or 'localhost:3000'
 config.unsafeContentHostname = process.env.COCO_UNSAFE_CONTENT_HOSTNAME or 'localhost:3000'
 

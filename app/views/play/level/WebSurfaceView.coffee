@@ -14,7 +14,7 @@ module.exports = class WebSurfaceView extends CocoView
     super(options)
 
   getRenderData: ->
-    _.merge super(), { unsafeContentHostname: serverConfig.unsafeContentHostname }
+    _.merge super(), { fullUnsafeContentHostname: serverConfig.fullUnsafeContentHostname }
 
   afterRender: ->
     super()
@@ -84,7 +84,7 @@ module.exports = class WebSurfaceView extends CocoView
 
   onIframeMessage: (event) =>
     origin = event.origin or event.originalEvent.origin
-    unless new RegExp("^https?:\/\/(cn\.)?#{serverConfig.unsafeContentHostname}$").test origin
+    unless new RegExp("^https?:\/\/#{serverConfig.fullUnsafeContentHostname}$").test origin
       return console.log 'Ignoring message from bad origin:', origin
     unless event.source is @iframe.contentWindow
       return console.log 'Ignoring message from somewhere other than our iframe:', event.source

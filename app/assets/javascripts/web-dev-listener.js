@@ -17,12 +17,8 @@ var virtualScripts;
 var goalStates;
 
 var allowedOrigins = [
-    /^https?:\/\/codecombat\.com$/,
-    /^https?:\/\/cn.codecombat\.com$/,
+    /^https?:\/\/(.*\.)?codecombat\.com$/,
     /^https?:\/\/localhost:3000$/,
-    /^https?:\/\/direct\.codecombat\.com$/,
-    /^https?:\/\/staging\.codecombat\.com$/,
-    /^https?:\/\/next\.codecombat\.com$/,
     /^https?:\/\/.*codecombat-staging-codecombat\.runnableapp\.com$/,
 ];
 

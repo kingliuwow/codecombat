@@ -57,17 +57,17 @@ setupDomainFilterMiddleware = (app) ->
     unsafePaths = [
       /^\/web-dev-iframe\.html$/
       /^\/javascripts\/web-dev-listener\.js$/
-      /^\/javascripts\/workers\/aether_worker\.js$/
     ]
     serveFromBoth = [
       /^\/healthcheck$/ # Allow the load balancer to check if we're up yet
+      /^\/javascripts\/workers\/aether_worker\.js$/
       /^\/javascripts\/app\/vendor\/aether-html\.js$/
       /^\/file\/db\/thang.type\/[a-f0-9]+\/.*$/
       /^\/images\/.*$/
     ]
     app.use (req, res, next) ->
-      isChinaServer = new RegExp('^cn\.').test(req.host)
-      domainPrefix = if isChinaServer then 'cn.' else ''
+      domainRegex = new RegExp("(.*\.)?(#{config.mainHostname}|#{config.unsafeContentHostname})")
+      domainPrefix = req.host.match(domainRegex)?[1] or ''
       if _.any(serveFromBoth, (pathRegex) -> pathRegex.test(req.path))
         next()
       else if _.any(unsafePaths, (pathRegex) -> pathRegex.test(req.path))
@@ -235,7 +235,9 @@ setupFallbackRouteToIndex = (app) ->
           configData =  _.omit mandate?.toObject() or {}, '_id'
         configData.picoCTF = config.picoCTF
         configData.production = config.isProduction
-        configData.unsafeContentHostname = config.unsafeContentHostname
+        domainRegex = new RegExp("(.*\.)?(#{config.mainHostname}|#{config.unsafeContentHostname})")
+        domainPrefix = req.host.match(domainRegex)?[1] or ''
+        configData.fullUnsafeContentHostname = domainPrefix + config.unsafeContentHostname
         data = data.replace '"serverConfigTag"', JSON.stringify configData
         data = data.replace('"userObjectTag"', user)
         data = data.replace('"amActuallyTag"', JSON.stringify(req.session.amActually))

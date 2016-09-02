@@ -19,7 +19,7 @@ module.exports =
     unless hasPermission or database.isJustFillingTranslations(req, achievement)
       throw new errors.Forbidden('Must be an admin, artisan or submitting translations to edit an achievement')
 
-    propsWatching = ['query', 'proportionalTo', 'rewards']
+    propsWatching = ['query', 'proportionalTo', 'rewards', 'worth']
     oldCopy = _.pick(achievement.toObject(), propsWatching)
     database.assignBody(req, achievement)
     newCopy = _.pick(achievement.toObject(), propsWatching)

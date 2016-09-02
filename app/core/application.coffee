@@ -62,7 +62,24 @@ Application = {
     $(document).bind 'keydown', preventBackspace
     preload(COMMON_FILES)
     CocoModel.pollAchievements()
-    @checkForNewAchievement() unless me.get('anonymous')
+    unless me.get('anonymous')
+      # TODO: Remove logging later, once this system has proved stable
+      me.on 'change:earned', (user, newEarned) ->
+        oldEarned = user.previous('earned')
+        if oldEarned.gems isnt newEarned.gems
+          console.log 'Gems changed', oldEarned.gems, '->', newEarned.gems
+        newLevels = _.difference(newEarned.levels, oldEarned.levels)
+        if newLevels.length
+          console.log 'Levels added', newLevels
+        newItems = _.difference(newEarned.items, oldEarned.items)
+        if newItems.length
+          console.log 'Items added', newItems
+        newHeroes = _.difference(newEarned.heroes, oldEarned.heroes)
+        if newHeroes.length
+          console.log 'Heroes added', newHeroes
+      me.on 'change:points', (user, newPoints) ->
+        console.log 'Points changed', user.previous('points'), '->', newPoints
+      @checkForNewAchievement()
     $.i18n.init {
       lng: me.get('preferredLanguage', true)
       fallbackLng: 'en'

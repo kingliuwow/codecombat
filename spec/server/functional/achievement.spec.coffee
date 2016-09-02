@@ -109,7 +109,7 @@ describe 'PUT /db/achievement', ->
     expect(res.body.name).toBe('whatev')
     done()
     
-  it 'touches "updated" if query, proportionalTo, or rewards change', utils.wrap (done) ->
+  it 'touches "updated" if query, proportionalTo, worth, or rewards change', utils.wrap (done) ->
     lastUpdated = @unlockable.get('updated')
     expect(lastUpdated).toBeDefined()
     [res, body] = yield request.putAsync {uri: url + '/'+@unlockable.id, json: {
@@ -134,6 +134,11 @@ describe 'PUT /db/achievement', ->
 
     newProportionalTo = 'playtime'
     [res, body] = yield request.putAsync {uri: url + '/'+@unlockable.id, json: {proportionalTo: newProportionalTo}}
+    expect(res.body.updated).not.toBe(lastUpdated)
+    lastUpdated = res.body.updated
+
+    newWorth = 1000
+    [res, body] = yield request.putAsync {uri: url + '/'+@unlockable.id, json: {worth: newWorth}}
     expect(res.body.updated).not.toBe(lastUpdated)
     done()
     

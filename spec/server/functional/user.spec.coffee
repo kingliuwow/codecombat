@@ -1107,16 +1107,30 @@ describe 'POST /db/user/:handle/check-for-new-achievements', ->
 
     yield utils.loginUser(user)
     [res, body] = yield request.postAsync({ url, json })
+    expect(res.body.points).toBe(175)
     expect(res.body.earned.gems).toBe(50)
 
     achievement.set({
       updated: new Date().toISOString()
       rewards: { gems: 100 }
+      worth: 200
     })
     yield achievement.save()
 
     [res, body] = yield request.postAsync({ url, json })
     expect(res.body.earned.gems).toBe(100)
+    expect(res.body.points).toBe(300)
+    expect(res.statusCode).toBe(200)
+
+    # special case: no worth, should default to 10
+    
+    yield achievement.update({
+      $set: {updated: new Date().toISOString()},
+      $unset: {worth:''}
+    })
+    [res, body] = yield request.postAsync({ url, json })
+    expect(res.body.earned.gems).toBe(100)
+    expect(res.body.points).toBe(110)
     expect(res.statusCode).toBe(200)
     done()
     

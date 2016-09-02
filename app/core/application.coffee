@@ -62,7 +62,7 @@ Application = {
     $(document).bind 'keydown', preventBackspace
     preload(COMMON_FILES)
     CocoModel.pollAchievements()
-#    @checkForNewAchievement() # TODO: Enable once thoroughly tested
+    @checkForNewAchievement() unless me.get('anonymous')
     $.i18n.init {
       lng: me.get('preferredLanguage', true)
       fallbackLng: 'en'

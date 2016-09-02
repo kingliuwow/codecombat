@@ -1118,7 +1118,71 @@ describe 'POST /db/user/:handle/check-for-new-achievements', ->
     [res, body] = yield request.postAsync({ url, json })
     expect(res.body.earned.gems).toBe(100)
     expect(res.statusCode).toBe(200)
-    
-    
     done()
     
+  it 'works for level sessions', utils.wrap (done) ->
+    admin = yield utils.initAdmin()
+    yield utils.loginUser(admin)
+    level = yield utils.makeLevel()
+    achievement = yield utils.makeAchievement({
+      collection: 'level.sessions'
+      userField: 'creator'
+      query: {
+        'level.original': level.get('original').toString()
+        'state': {complete: true}
+      }
+      worth: 100
+      proportionalTo: 'state.difficulty'
+    })
+    levelSession = yield utils.makeLevelSession({state: {complete: true, difficulty:2}}, { creator:admin, level })
+    url = utils.getURL("/db/user/#{admin.id}/check-for-new-achievement")
+    json = true
+    [res, body] = yield request.postAsync({ url, json })
+    expect(body.points).toBe(200)
+    
+    # check idempotency
+    achievement.set('updated', new Date().toISOString())
+    yield achievement.save()
+    [res, body] = yield request.postAsync({ url, json })
+    expect(body.points).toBe(200)
+    admin = yield User.findById(admin.id)
+    done()
+
+  it 'skips achievements which have not been satisfied', utils.wrap (done) ->
+    admin = yield utils.initAdmin()
+    yield utils.loginUser(admin)
+    level = yield utils.makeLevel()
+    achievement = yield utils.makeAchievement({
+      collection: 'level.sessions'
+      userField: 'creator'
+      query: {
+        'level.original': 'does not matter'
+      }
+      worth: 100
+    })
+    expect(admin.get('lastAchievementChecked')).toBeUndefined()
+    url = utils.getURL("/db/user/#{admin.id}/check-for-new-achievement")
+    json = true
+    [res, body] = yield request.postAsync({ url, json })
+    expect(body.points).toBeUndefined()
+    admin = yield User.findById(admin.id)
+    expect(admin.get('lastAchievementChecked')).toBe(achievement.get('updated'))
+    done()
+
+  it 'skips achievements which are not either for the users collection or the level sessions collection with level.original included', utils.wrap (done) ->
+    admin = yield utils.initAdmin()
+    yield utils.loginUser(admin)
+    achievement = yield utils.makeAchievement({
+      collection: 'not.supported'
+      userField: 'creator'
+      query: {}
+      worth: 100
+    })
+    expect(admin.get('lastAchievementChecked')).toBeUndefined()
+    url = utils.getURL("/db/user/#{admin.id}/check-for-new-achievement")
+    json = true
+    [res, body] = yield request.postAsync({ url, json })
+    expect(body.points).toBeUndefined()
+    admin = yield User.findById(admin.id)
+    expect(admin.get('lastAchievementChecked')).toBe(achievement.get('updated'))
+    done()

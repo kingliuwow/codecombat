@@ -3,6 +3,7 @@ jsonschema = require '../../app/schemas/models/earned_achievement'
 util = require '../../app/core/utils'
 log = require 'winston'
 co = require 'co'
+errors = require '../commons/errors'
 
 EarnedAchievementSchema = new mongoose.Schema({
   notified:
